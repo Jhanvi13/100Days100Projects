@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Power BI Dashboard – Step by Step Guide</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:     #0B1929;
+  --panel:  #112840;
+  --card:   #0F2133;
+  --accent: #38BDF8;
+  --green:  #34D399;
+  --amber:  #FBBF24;
+  --red:    #F87171;
+  --white:  #F8FAFC;
+  --muted:  #94A3B8;
+  --border: #1E3A5F;
+}
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar nav ── */
+.sidebar {
+  width: 260px; flex-shrink: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-title {
+  color: var(--accent); font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; padding: 0 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.nav-section { padding: 16px 20px 4px; }
+.nav-section-label {
+  color: var(--muted); font-size: 10px; font-weight: 700;
+  letter-spacing: 1.5px; margin-bottom: 6px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px; border-radius: 6px;
+  color: var(--muted); font-size: 12px; cursor: pointer;
+  text-decoration: none; transition: all .15s;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: rgba(56,189,248,.08); color: var(--white); }
+.nav-item.active { background: rgba(56,189,248,.12); color: var(--accent); font-weight: 600; }
+.nav-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--border); color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0;
+}
+.nav-item.active .nav-num { background: var(--accent); color: #0B1929; }
+.nav-item.done .nav-num { background: var(--green); color: #0B1929; }
+.nav-item.done { color: var(--green); }
+
+/* ── Main content ── */
+.main { flex: 1; padding: 40px 48px; max-width: 860px; }
+.page-header { margin-bottom: 40px; }
+.page-title { font-size: 26px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.page-sub { color: var(--muted); font-size: 14px; }
+
+/* Steps */
+.step {
+  margin-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+.step-header {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 20px;
+}
+.step-badge {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: #0B1929;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 800; flex-shrink: 0; margin-top: 2px;
+}
+.step-badge.green { background: var(--green); }
+.step-badge.amber { background: var(--amber); }
+.step-badge.red   { background: var(--red); }
+.step-badge.cyan  { background: #22D3EE; }
+.step-badge.purple{ background: #A78BFA; }
+
+.step-title { font-size: 18px; font-weight: 700; color: var(--white); }
+.step-desc  { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+/* Sub-steps */
+.substeps { display: flex; flex-direction: column; gap: 10px; }
+.substep {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.substep-num {
+  color: var(--accent); font-size: 11px; font-weight: 700;
+  margin-bottom: 4px; letter-spacing: .5px;
+}
+.substep p { color: var(--white); font-size: 13px; line-height: 1.6; }
+.substep p + p { margin-top: 6px; }
+
+/* Click path */
+.path {
+  display: inline-flex; align-items: center; flex-wrap: wrap; gap: 3px;
+  margin: 6px 0;
+}
+.crumb {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 4px; padding: 2px 8px;
+  color: var(--accent); font-size: 12px; font-weight: 600;
+}
+.arrow { color: var(--muted); font-size: 11px; }
+
+/* Value boxes */
+.val {
+  display: inline-block;
+  background: rgba(56,189,248,.1); border: 1px solid rgba(56,189,248,.3);
+  border-radius: 4px; padding: 1px 7px;
+  color: var(--accent); font-size: 12px; font-family: monospace;
+}
+.val.green { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.3); color: var(--green); }
+.val.amber { background: rgba(251,191,36,.1);  border-color: rgba(251,191,36,.3);  color: var(--amber); }
+.val.red   { background: rgba(248,113,113,.1); border-color: rgba(248,113,113,.3); color: var(--red); }
+
+/* Tips */
+.tip {
+  background: rgba(56,189,248,.06);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px; margin-top: 10px;
+  color: var(--muted); font-size: 12px;
+}
+.tip strong { color: var(--accent); }
+.warn {
+  background: rgba(251,191,36,.06);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px; margin-top: 10px;
+  color: var(--muted); font-size: 12px;
+}
+.warn strong { color: var(--amber); }
+
+/* Color swatch */
+.swatch {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+}
+.swatch-dot {
+  width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0;
+}
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; margin: 8px 0; }
+
+/* Visual layout diagram */
+.diagram {
+  background: #060e18; border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; font-family: monospace;
+  font-size: 11px; color: var(--muted); line-height: 1.8;
+  margin: 12px 0;
+}
+.diagram .hl  { color: var(--accent); }
+.diagram .g   { color: var(--green); }
+.diagram .am  { color: var(--amber); }
+.diagram .rd  { color: var(--red); }
+.diagram .cy  { color: #22D3EE; }
+
+/* Steps table */
+.props { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+.props th { background: var(--panel); color: var(--accent); padding: 6px 10px; text-align: left; font-size: 11px; }
+.props td { padding: 6px 10px; border-bottom: 1px solid var(--border); color: var(--white); }
+.props td:first-child { color: var(--muted); }
+
+/* Section divider */
+.section-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 40px 0 32px;
+}
+.section-divider-line { flex: 1; height: 1px; background: var(--border); }
+.section-divider-text {
+  color: var(--accent); font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; white-space: nowrap;
+}
+
+/* Progress bar */
+.progress-bar {
+  background: var(--border); height: 4px; border-radius: 2px;
+  margin-bottom: 32px;
+}
+.progress-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), #22D3EE);
+  width: 0%;
+  transition: width .4s;
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="sidebar-title">STEP-BY-STEP GUIDE</div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">SETUP</div>
+    <a class="nav-item active" href="#s1"><span class="nav-num">1</span> Open & Canvas</a>
+    <a class="nav-item" href="#s2"><span class="nav-num">2</span> Connect Data</a>
+    <a class="nav-item" href="#s3"><span class="nav-num">3</span> Theme & Colors</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">HEADER</div>
+    <a class="nav-item" href="#s4"><span class="nav-num">4</span> Header Bar</a>
+    <a class="nav-item" href="#s5"><span class="nav-num">5</span> Logo Placeholder</a>
+    <a class="nav-item" href="#s6"><span class="nav-num">6</span> Title & Period</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">KPI CARDS</div>
+    <a class="nav-item" href="#s7"><span class="nav-num">7</span> DAX Measures</a>
+    <a class="nav-item" href="#s8"><span class="nav-num">8</span> Add 4 Cards</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">CHARTS</div>
+    <a class="nav-item" href="#s9"><span class="nav-num">9</span> Donut Chart</a>
+    <a class="nav-item" href="#s10"><span class="nav-num">10</span> Line Chart</a>
+    <a class="nav-item" href="#s11"><span class="nav-num">11</span> Stacked Bar</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">TABLE & SLICERS</div>
+    <a class="nav-item" href="#s12"><span class="nav-num">12</span> Detail Table</a>
+    <a class="nav-item" href="#s13"><span class="nav-num">13</span> Slicers Panel</a>
+    <a class="nav-item" href="#s14"><span class="nav-num">14</span> Bookmark Button</a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">FINISH</div>
+    <a class="nav-item" href="#s15"><span class="nav-num">15</span> Final Polish</a>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main class="main">
+
+<div class="page-header">
+  <div class="page-title">Build Your Power BI Dashboard</div>
+  <div class="page-sub">Employee Performance · Dark navy theme · Pop-out filters</div>
+  <div style="margin-top:14px">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 1 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s1">
+  <div class="step-header">
+    <div class="step-badge">1</div>
+    <div>
+      <div class="step-title">Open Power BI & Set the Canvas</div>
+      <div class="step-desc">Start a blank report and match the 1280×720 canvas from the design.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">1.1 — Open Power BI Desktop</div>
+      <p>Launch <strong>Power BI Desktop</strong>. Close the splash screen. You'll see a blank white canvas.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">1.2 — Set Canvas Size</div>
+      <p>Click anywhere on the blank canvas (not on any visual).</p>
+      <div class="path">
+        <span class="crumb">View</span><span class="arrow">›</span>
+        <span class="crumb">Page View</span><span class="arrow">›</span>
+        <span class="crumb">Actual Size</span>
+      </div>
+      <p>Then in the <strong>Format</strong> pane on the right, expand <strong>Canvas Settings</strong> and set:</p>
+      <table class="props">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Type</td><td><span class="val">Custom</span></td></tr>
+        <tr><td>Width</td><td><span class="val">1280</span></td></tr>
+        <tr><td>Height</td><td><span class="val">720</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">1.3 — Set Page Background</div>
+      <p>Still with nothing selected, in the <strong>Format</strong> pane find <strong>Canvas Background</strong>:</p>
+      <table class="props">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>Color</td><td><span class="val">#0B1929</span></td></tr>
+        <tr><td>Transparency</td><td><span class="val">0%</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">1.4 — Name the Page</div>
+      <p>Double-click the <strong>Page 1</strong> tab at the bottom and rename it to <span class="val">Dashboard</span>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 2 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s2">
+  <div class="step-header">
+    <div class="step-badge green">2</div>
+    <div>
+      <div class="step-title">Connect Your Data</div>
+      <div class="step-desc">Load the QCFBIDEMPLOYEEPERFORMANCEPRODUCTION table from your data source.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">2.1 — Get Data</div>
+      <div class="path">
+        <span class="crumb">Home</span><span class="arrow">›</span>
+        <span class="crumb">Get Data</span><span class="arrow">›</span>
+        <span class="crumb">More…</span>
+      </div>
+      <p>Choose your source (SQL Server, Snowflake, SharePoint, Excel, etc.) and connect to your table.</p>
+      <div class="tip"><strong>Tip:</strong> If you're using the .pbit template I gave you, double-click it — Power BI will ask for your credentials and auto-map all columns.</div>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">2.2 — Verify Columns</div>
+      <p>In <strong>Power Query Editor</strong>, confirm these key columns exist:</p>
+      <table class="props">
+        <tr><th>Column</th><th>Expected Type</th></tr>
+        <tr><td>DATE</td><td><span class="val">Date</span></td></tr>
+        <tr><td>EMPLOYEENAME</td><td><span class="val">Text</span></td></tr>
+        <tr><td>CONTEXT_PLANT</td><td><span class="val">Text</span></td></tr>
+        <tr><td>JOBTITLE</td><td><span class="val">Text</span></td></tr>
+        <tr><td>TOTAL_SCORE</td><td><span class="val">Decimal Number</span></td></tr>
+        <tr><td>FORMPASSFAIL</td><td><span class="val">Text</span></td></tr>
+        <tr><td>APPROVAL_STATUS</td><td><span class="val">Text</span></td></tr>
+      </table>
+      <p>Click <strong>Close &amp; Apply</strong> when done.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 3 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s3">
+  <div class="step-header">
+    <div class="step-badge amber">3</div>
+    <div>
+      <div class="step-title">Apply the Color Theme</div>
+      <div class="step-desc">Set your brand colors so all visuals stay consistent automatically.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">3.1 — Note these colors — you'll use them repeatedly</div>
+      <div class="swatches">
+        <span class="swatch"><span class="swatch-dot" style="background:#0B1929"></span> Page BG <code>#0B1929</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#0D2137"></span> Header <code>#0D2137</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#0F2133"></span> Cards <code>#0F2133</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#38BDF8"></span> Accent Blue <code>#38BDF8</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#34D399"></span> Green <code>#34D399</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#F87171"></span> Red <code>#F87171</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#FBBF24"></span> Amber <code>#FBBF24</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#94A3B8"></span> Muted <code>#94A3B8</code></span>
+        <span class="swatch"><span class="swatch-dot" style="background:#1E3A5F"></span> Border <code>#1E3A5F</code></span>
+      </div>
+      <div class="tip"><strong>Tip:</strong> Bookmark this page. When Power BI asks for a color, click the hex field and paste directly.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-text">HEADER SECTION</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 4 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s4">
+  <div class="step-header">
+    <div class="step-badge cyan">4</div>
+    <div>
+      <div class="step-title">Draw the Header Bar</div>
+      <div class="step-desc">A dark rectangle across the top with a blue accent line underneath.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">4.1 — Insert a Rectangle</div>
+      <div class="path">
+        <span class="crumb">Insert</span><span class="arrow">›</span>
+        <span class="crumb">Shapes</span><span class="arrow">›</span>
+        <span class="crumb">Rectangle</span>
+      </div>
+      <p>Draw it across the full top of the canvas. In the <strong>Format</strong> pane set exact position:</p>
+      <table class="props">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>X</td><td><span class="val">0</span></td></tr>
+        <tr><td>Y</td><td><span class="val">0</span></td></tr>
+        <tr><td>Width</td><td><span class="val">1280</span></td></tr>
+        <tr><td>Height</td><td><span class="val">64</span></td></tr>
+        <tr><td>Fill color</td><td><span class="val">#0D2137</span></td></tr>
+        <tr><td>Border</td><td><span class="val">Off</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">4.2 — Add the Accent Line</div>
+      <p>Insert a second Rectangle for the blue bottom border:</p>
+      <table class="props">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>X</td><td><span class="val">0</span></td></tr>
+        <tr><td>Y</td><td><span class="val">62</span></td></tr>
+        <tr><td>Width</td><td><span class="val">1280</span></td></tr>
+        <tr><td>Height</td><td><span class="val">2</span></td></tr>
+        <tr><td>Fill color</td><td><span class="val">#38BDF8</span></td></tr>
+        <tr><td>Border</td><td><span class="val">Off</span></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 5 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s5">
+  <div class="step-header">
+    <div class="step-badge cyan">5</div>
+    <div>
+      <div class="step-title">Add Logo Placeholder</div>
+      <div class="step-desc">A dashed box on the left of the header where you'll drop your logo image.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">5.1 — Insert a Rectangle for the logo box</div>
+      <table class="props">
+        <tr><th>Property</th><th>Value</th></tr>
+        <tr><td>X</td><td><span class="val">12</span></td></tr>
+        <tr><td>Y</td><td><span class="val">11</span></td></tr>
+        <tr><td>Width</td><td><span class="val">110</span></td></tr>
+        <tr><td>Height</td><td><span class="val">42</span></td></tr>
+        <tr><td>Fill color</td><td><span class="val">#0A1E2E</span></td></tr>
+        <tr><td>Border color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Border width</td><td><span class="val">1</span></td></tr>
+        <tr><td>Rounded corners</td><td><span class="val">6</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">5.2 — Add "YOUR LOGO" label inside it</div>
+      <div class="path">
+        <span class="crumb">Insert</span><span class="arrow">›</span>
+        <span class="crumb">Text Box</span>
+      </div>
+      <p>Type <span class="val">[ YOUR LOGO ]</span> and position it centered over the logo box. Format:</p>
+      <table class="props">
+        <tr><td>Font</td><td><span class="val">Segoe UI</span> · <span class="val">9pt</span></td></tr>
+        <tr><td>Color</td><td><span class="val">#94A3B8</span></td></tr>
+        <tr><td>Background</td><td><span class="val">transparent</span></td></tr>
+        <tr><td>Alignment</td><td><span class="val">Center</span></td></tr>
+      </table>
+      <div class="tip"><strong>Replacing with real logo:</strong> Delete this text box later, then Insert → Image and position it in the same spot.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 6 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s6">
+  <div class="step-header">
+    <div class="step-badge cyan">6</div>
+    <div>
+      <div class="step-title">Add Title &amp; Period Text</div>
+      <div class="step-desc">Dashboard title centered in the header, date range label on the right.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">6.1 — Main Title</div>
+      <p>Insert → Text Box. Type: <span class="val">Employee Performance Dashboard</span></p>
+      <table class="props">
+        <tr><td>Position X/Y/W/H</td><td><span class="val">140, 10, 800, 44</span></td></tr>
+        <tr><td>Font</td><td><span class="val">Segoe UI Semibold · 20pt · Bold</span></td></tr>
+        <tr><td>Font color</td><td><span class="val">#F8FAFC</span></td></tr>
+        <tr><td>Alignment</td><td><span class="val">Center</span></td></tr>
+        <tr><td>Background</td><td><span class="val">transparent</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">6.2 — Period Label (right side)</div>
+      <p>Insert → Text Box. Type: <span class="val">Report Period</span> on line 1, <span class="val">Jan 2026 – Jun 2026</span> on line 2.</p>
+      <table class="props">
+        <tr><td>Position X/Y/W/H</td><td><span class="val">990, 12, 200, 40</span></td></tr>
+        <tr><td>Line 1 font</td><td><span class="val">Segoe UI · 10pt · Bold · #38BDF8</span></td></tr>
+        <tr><td>Line 2 font</td><td><span class="val">Segoe UI · 10pt · #94A3B8</span></td></tr>
+        <tr><td>Alignment</td><td><span class="val">Right</span></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-text">KPI CARDS</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 7 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s7">
+  <div class="step-header">
+    <div class="step-badge">7</div>
+    <div>
+      <div class="step-title">Create DAX Measures</div>
+      <div class="step-desc">These power your KPI cards and charts. Create them before adding visuals.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">7.1 — Open the DAX editor</div>
+      <p>In the left sidebar click the <strong>Table view</strong> icon, select your table, then click <strong>New Measure</strong> in the ribbon.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">7.2 — Create each measure (copy &amp; paste)</div>
+      <table class="props">
+        <tr><th>Measure Name</th><th>DAX Formula</th></tr>
+        <tr>
+          <td>Total Forms</td>
+          <td><span class="val">COUNTROWS(EmployeePerformance)</span></td>
+        </tr>
+        <tr>
+          <td>Pass Rate %</td>
+          <td><span class="val">DIVIDE(COUNTROWS(FILTER(EmployeePerformance, EmployeePerformance[FORMPASSFAIL]="Pass")), COUNTROWS(EmployeePerformance), 0) * 100</span></td>
+        </tr>
+        <tr>
+          <td>Avg Score</td>
+          <td><span class="val">AVERAGE(EmployeePerformance[TOTAL_SCORE])</span></td>
+        </tr>
+        <tr>
+          <td>Target Met %</td>
+          <td><span class="val">DIVIDE(COUNTROWS(FILTER(EmployeePerformance, EmployeePerformance[TARGETMET]=TRUE())), COUNTROWS(EmployeePerformance), 0) * 100</span></td>
+        </tr>
+      </table>
+      <div class="tip"><strong>Tip:</strong> After creating each measure, right-click it → Format → set decimal places to 0 or 1 as needed.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 8 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s8">
+  <div class="step-header">
+    <div class="step-badge">8</div>
+    <div>
+      <div class="step-title">Add the 4 KPI Cards</div>
+      <div class="step-desc">Repeat this process 4 times — one card per measure.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">8.1 — Insert a Card visual</div>
+      <p>In the <strong>Visualizations</strong> pane click the <strong>Card</strong> icon. A blank card appears on canvas.</p>
+      <p>Drag your measure (<span class="val">Total Forms</span>) into the <strong>Fields</strong> well.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">8.2 — Size and position the first card</div>
+      <table class="props">
+        <tr><th>Card</th><th>X</th><th>Y</th><th>W</th><th>H</th><th>Measure</th></tr>
+        <tr><td>Card 1</td><td><span class="val">8</span></td><td><span class="val">72</span></td><td><span class="val">308</span></td><td><span class="val">88</span></td><td>Total Forms</td></tr>
+        <tr><td>Card 2</td><td><span class="val">324</span></td><td><span class="val">72</span></td><td><span class="val">308</span></td><td><span class="val">88</span></td><td>Pass Rate %</td></tr>
+        <tr><td>Card 3</td><td><span class="val">640</span></td><td><span class="val">72</span></td><td><span class="val">308</span></td><td><span class="val">88</span></td><td>Avg Score</td></tr>
+        <tr><td>Card 4</td><td><span class="val">956</span></td><td><span class="val">72</span></td><td><span class="val">308</span></td><td><span class="val">88</span></td><td>Target Met %</td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">8.3 — Format each card (Format pane → Visual)</div>
+      <table class="props">
+        <tr><th>Section</th><th>Setting</th><th>Value</th></tr>
+        <tr><td>Background</td><td>Color</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Background</td><td>Transparency</td><td><span class="val">0%</span></td></tr>
+        <tr><td>Border</td><td>Color</td><td>Card 1: <span class="val">#38BDF8</span> · Card 2: <span class="val">#34D399</span> · Card 3: <span class="val">#FBBF24</span> · Card 4: <span class="val">#22D3EE</span></td></tr>
+        <tr><td>Border</td><td>Rounded corners</td><td><span class="val">8</span></td></tr>
+        <tr><td>Callout value</td><td>Font</td><td><span class="val">Segoe UI Light · 28pt</span></td></tr>
+        <tr><td>Callout value</td><td>Color</td><td>Match border color per card</td></tr>
+        <tr><td>Category label</td><td>Color</td><td><span class="val">#94A3B8</span></td></tr>
+        <tr><td>Category label</td><td>Font size</td><td><span class="val">11pt</span></td></tr>
+      </table>
+      <div class="tip"><strong>Shortcut:</strong> Format Card 1 fully, then right-click → Copy → Paste 3 times. Change only the measure and border color for each copy.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-text">CHARTS</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 9 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s9">
+  <div class="step-header">
+    <div class="step-badge red">9</div>
+    <div>
+      <div class="step-title">Donut Chart — Pass vs Fail</div>
+      <div class="step-desc">Shows the pass/fail split with the pass rate % in the center.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">9.1 — Add the visual</div>
+      <p>Click the <strong>Donut Chart</strong> icon in Visualizations pane.</p>
+      <table class="props">
+        <tr><th>Field well</th><th>Column</th></tr>
+        <tr><td>Legend</td><td><span class="val">FORMPASSFAIL</span></td></tr>
+        <tr><td>Values</td><td><span class="val">Total Forms</span> (your measure)</td></tr>
+      </table>
+      <p>Position: <span class="val">X=8, Y=168, W=336, H=216</span></p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">9.2 — Format the donut</div>
+      <table class="props">
+        <tr><th>Section</th><th>Setting</th><th>Value</th></tr>
+        <tr><td>Colors → Pass</td><td>Color</td><td><span class="val green">#34D399</span></td></tr>
+        <tr><td>Colors → Fail</td><td>Color</td><td><span class="val red">#F87171</span></td></tr>
+        <tr><td>Inner radius</td><td>%</td><td><span class="val">65</span></td></tr>
+        <tr><td>Legend</td><td>Position</td><td><span class="val">Bottom</span></td></tr>
+        <tr><td>Legend</td><td>Color</td><td><span class="val">#94A3B8</span></td></tr>
+        <tr><td>Background</td><td>Color</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Border</td><td>Color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Border</td><td>Rounded corners</td><td><span class="val">8</span></td></tr>
+        <tr><td>Title</td><td>Text</td><td><span class="val">Pass vs Fail Breakdown</span></td></tr>
+        <tr><td>Title</td><td>Color</td><td><span class="val">#F8FAFC</span></td></tr>
+        <tr><td>Title</td><td>Font</td><td><span class="val">Segoe UI Semibold · 11pt</span></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 10 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s10">
+  <div class="step-header">
+    <div class="step-badge red">10</div>
+    <div>
+      <div class="step-title">Line Chart — Monthly Score Trend</div>
+      <div class="step-desc">Average score over time with a target benchmark line.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">10.1 — Add the visual</div>
+      <p>Click the <strong>Line Chart</strong> icon in Visualizations.</p>
+      <table class="props">
+        <tr><th>Field well</th><th>Column</th></tr>
+        <tr><td>X Axis</td><td><span class="val">DATE</span> → set hierarchy to <strong>Month</strong></td></tr>
+        <tr><td>Y Axis</td><td><span class="val">Avg Score</span> (your measure)</td></tr>
+      </table>
+      <p>Position: <span class="val">X=352, Y=168, W=576, H=216</span></p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">10.2 — Add a constant target line at 80</div>
+      <div class="path">
+        <span class="crumb">Format pane</span><span class="arrow">›</span>
+        <span class="crumb">Analytics</span><span class="arrow">›</span>
+        <span class="crumb">Constant Line</span><span class="arrow">›</span>
+        <span class="crumb">+ Add</span>
+      </div>
+      <table class="props">
+        <tr><td>Value</td><td><span class="val">80</span></td></tr>
+        <tr><td>Color</td><td><span class="val amber">#FBBF24</span></td></tr>
+        <tr><td>Style</td><td><span class="val">Dashed</span></td></tr>
+        <tr><td>Label</td><td><span class="val">Target</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">10.3 — Format the line chart</div>
+      <table class="props">
+        <tr><th>Section</th><th>Setting</th><th>Value</th></tr>
+        <tr><td>Line → Colors</td><td>Color</td><td><span class="val">#22D3EE</span></td></tr>
+        <tr><td>Line</td><td>Stroke width</td><td><span class="val">2</span></td></tr>
+        <tr><td>Markers</td><td>Show</td><td><span class="val">On</span></td></tr>
+        <tr><td>Markers</td><td>Color</td><td><span class="val">#22D3EE</span></td></tr>
+        <tr><td>X axis</td><td>Font color</td><td><span class="val">#94A3B8</span></td></tr>
+        <tr><td>Y axis</td><td>Font color</td><td><span class="val">#94A3B8</span></td></tr>
+        <tr><td>Gridlines</td><td>Color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Background</td><td>Color</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Border</td><td>Rounded corners</td><td><span class="val">8</span></td></tr>
+        <tr><td>Title</td><td>Text</td><td><span class="val">Monthly Score Trend</span></td></tr>
+        <tr><td>Title</td><td>Color</td><td><span class="val">#F8FAFC</span></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 11 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s11">
+  <div class="step-header">
+    <div class="step-badge red">11</div>
+    <div>
+      <div class="step-title">Stacked Bar — Results by Plant</div>
+      <div class="step-desc">Pass/fail count stacked per plant so you can see volume and quality together.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">11.1 — Add the visual</div>
+      <p>Click the <strong>Stacked Column Chart</strong> icon (the one with colored segments).</p>
+      <table class="props">
+        <tr><th>Field well</th><th>Column</th></tr>
+        <tr><td>X Axis</td><td><span class="val">CONTEXT_PLANT</span></td></tr>
+        <tr><td>Y Axis</td><td><span class="val">Total Forms</span></td></tr>
+        <tr><td>Legend</td><td><span class="val">FORMPASSFAIL</span></td></tr>
+      </table>
+      <p>Position: <span class="val">X=936, Y=168, W=336, H=216</span></p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">11.2 — Format</div>
+      <table class="props">
+        <tr><td>Colors → Pass</td><td><span class="val green">#34D399</span></td></tr>
+        <tr><td>Colors → Fail</td><td><span class="val red">#F87171</span></td></tr>
+        <tr><td>Data labels</td><td><span class="val">On · white · 9pt</span></td></tr>
+        <tr><td>Background</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Border</td><td>Rounded corners <span class="val">8</span></td></tr>
+        <tr><td>Title</td><td><span class="val">Results by Plant</span> · white · 11pt</td></tr>
+        <tr><td>Legend</td><td>Bottom · <span class="val">#94A3B8</span></td></tr>
+        <tr><td>X/Y axis</td><td>Font color <span class="val">#94A3B8</span></td></tr>
+        <tr><td>Gridlines</td><td><span class="val">#1E3A5F</span></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-text">TABLE &amp; SLICERS</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 12 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s12">
+  <div class="step-header">
+    <div class="step-badge purple">12</div>
+    <div>
+      <div class="step-title">Add the Detail Table</div>
+      <div class="step-desc">Row-level employee data with score, result, and approval status.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">12.1 — Insert Table visual</div>
+      <p>Click the <strong>Table</strong> icon in Visualizations. Add these columns to the <strong>Columns</strong> well:</p>
+      <p><span class="val">EMPLOYEENAME</span> · <span class="val">JOBTITLE</span> · <span class="val">CONTEXT_PLANT</span> · <span class="val">DATE</span> · <span class="val">TOTAL_SCORE</span> · <span class="val">FORMPASSFAIL</span> · <span class="val">APPROVAL_STATUS</span> · <span class="val">PERSONWHOSUBMITTEDTHISFORM</span></p>
+      <p>Position: <span class="val">X=8, Y=392, W=1264, H=320</span></p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">12.2 — Format the table</div>
+      <table class="props">
+        <tr><th>Section</th><th>Setting</th><th>Value</th></tr>
+        <tr><td>Column headers</td><td>Background</td><td><span class="val">#0D2137</span></td></tr>
+        <tr><td>Column headers</td><td>Font color</td><td><span class="val">#38BDF8</span></td></tr>
+        <tr><td>Column headers</td><td>Font</td><td><span class="val">Segoe UI Semibold · 10pt · Bold</span></td></tr>
+        <tr><td>Values (odd rows)</td><td>Background</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Values (even rows)</td><td>Background</td><td><span class="val">#112840</span></td></tr>
+        <tr><td>Values</td><td>Font color</td><td><span class="val">#F8FAFC</span></td></tr>
+        <tr><td>Grid</td><td>Horizontal color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Grid</td><td>Vertical lines</td><td><span class="val">Off</span></td></tr>
+        <tr><td>Background</td><td>Color</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Border</td><td>Rounded corners</td><td><span class="val">8</span></td></tr>
+        <tr><td>Title</td><td>Text</td><td><span class="val">Employee Performance Detail</span></td></tr>
+        <tr><td>Title</td><td>Color</td><td><span class="val">#F8FAFC</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">12.3 — Conditional formatting on TOTAL_SCORE (optional but professional)</div>
+      <p>Click the arrow next to <span class="val">TOTAL_SCORE</span> in the column fields well → <strong>Conditional formatting</strong> → <strong>Background color</strong>.</p>
+      <table class="props">
+        <tr><td>≥ 80</td><td><span class="val green">#34D399</span> at 20% opacity</td></tr>
+        <tr><td>60–79</td><td><span class="val amber">#FBBF24</span> at 20% opacity</td></tr>
+        <tr><td>&lt; 60</td><td><span class="val red">#F87171</span> at 20% opacity</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 13 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s13">
+  <div class="step-header">
+    <div class="step-badge purple">13</div>
+    <div>
+      <div class="step-title">Build the Slicers Panel</div>
+      <div class="step-desc">Create 5 slicers on a separate group that will be hidden/shown via a bookmark button.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">13.1 — Draw the panel background</div>
+      <p>Insert → Shape → Rectangle. This will be the filter panel backdrop:</p>
+      <table class="props">
+        <tr><td>X / Y / W / H</td><td><span class="val">988, 64, 292, 656</span></td></tr>
+        <tr><td>Fill color</td><td><span class="val">#112840</span></td></tr>
+        <tr><td>Border color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Border width</td><td><span class="val">1</span></td></tr>
+      </table>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">13.2 — Add 5 Slicer visuals on the panel</div>
+      <p>For each slicer: Visualizations → <strong>Slicer</strong> icon. Stack them vertically inside the panel.</p>
+      <table class="props">
+        <tr><th>Slicer</th><th>Field</th><th>Style</th><th>Y position</th></tr>
+        <tr><td>Date Range</td><td><span class="val">DATE</span></td><td>Between</td><td><span class="val">80</span></td></tr>
+        <tr><td>Plant</td><td><span class="val">CONTEXT_PLANT</span></td><td>List</td><td><span class="val">196</span></td></tr>
+        <tr><td>Job Title</td><td><span class="val">JOBTITLE</span></td><td>List</td><td><span class="val">316</span></td></tr>
+        <tr><td>Pass / Fail</td><td><span class="val">FORMPASSFAIL</span></td><td>List</td><td><span class="val">436</span></td></tr>
+        <tr><td>Approval</td><td><span class="val">APPROVAL_STATUS</span></td><td>List</td><td><span class="val">556</span></td></tr>
+      </table>
+      <p>All slicers: <span class="val">X=996, W=276</span>, Height ≈ <span class="val">110</span> each.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">13.3 — Format each slicer</div>
+      <table class="props">
+        <tr><th>Section</th><th>Value</th></tr>
+        <tr><td>Header font color</td><td><span class="val">#38BDF8</span></td></tr>
+        <tr><td>Header background</td><td><span class="val">#112840</span></td></tr>
+        <tr><td>Header font</td><td><span class="val">Segoe UI Semibold · 10pt · Bold</span></td></tr>
+        <tr><td>Items font color</td><td><span class="val">#F8FAFC</span></td></tr>
+        <tr><td>Items background</td><td><span class="val">transparent</span></td></tr>
+        <tr><td>Background</td><td><span class="val">#0F2133</span></td></tr>
+        <tr><td>Border color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Rounded corners</td><td><span class="val">6</span></td></tr>
+        <tr><td>Selection controls</td><td>Show "Select All" → <span class="val">On</span></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 14 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s14">
+  <div class="step-header">
+    <div class="step-badge purple">14</div>
+    <div>
+      <div class="step-title">Pop-out Filter Button with Bookmarks</div>
+      <div class="step-desc">This is the key step that makes filters hide/show like the preview.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">14.1 — Group your slicer panel</div>
+      <p>Hold <strong>Ctrl</strong> and click the panel background rectangle + all 5 slicers + the panel title. Then:</p>
+      <div class="path">
+        <span class="crumb">Format</span><span class="arrow">›</span>
+        <span class="crumb">Group</span><span class="arrow">›</span>
+        <span class="crumb">Group</span>
+      </div>
+      <p>Rename the group <span class="val">FilterPanel</span> in the Selection pane.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">14.2 — Open the Bookmarks pane</div>
+      <div class="path">
+        <span class="crumb">View</span><span class="arrow">›</span>
+        <span class="crumb">Bookmarks</span>
+      </div>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">14.3 — Create Bookmark 1: "Filters Hidden"</div>
+      <p>In the <strong>Selection</strong> pane, click the eye icon next to <span class="val">FilterPanel</span> to <strong>hide it</strong>.</p>
+      <p>In Bookmarks pane click <strong>Add</strong>. Name it <span class="val">Filters Hidden</span>.</p>
+      <p>Right-click the bookmark → <strong>Update</strong> → uncheck <em>Data</em>, keep <em>Display</em> checked.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">14.4 — Create Bookmark 2: "Filters Shown"</div>
+      <p>In the Selection pane click the eye icon next to <span class="val">FilterPanel</span> to <strong>show it</strong>.</p>
+      <p>Click <strong>Add</strong> in Bookmarks. Name it <span class="val">Filters Shown</span>.</p>
+      <p>Right-click → <strong>Update</strong> → uncheck <em>Data</em>, keep <em>Display</em>.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">14.5 — Add the Filters Button in the header</div>
+      <div class="path">
+        <span class="crumb">Insert</span><span class="arrow">›</span>
+        <span class="crumb">Buttons</span><span class="arrow">›</span>
+        <span class="crumb">Blank</span>
+      </div>
+      <p>Position: <span class="val">X=1198, Y=17, W=74, H=30</span></p>
+      <p>In Format pane:</p>
+      <table class="props">
+        <tr><td>Button text</td><td><span class="val">⊟ Filters</span></td></tr>
+        <tr><td>Text color</td><td><span class="val">#F8FAFC</span></td></tr>
+        <tr><td>Fill</td><td><span class="val">#112840</span></td></tr>
+        <tr><td>Border color</td><td><span class="val">#1E3A5F</span></td></tr>
+        <tr><td>Rounded corners</td><td><span class="val">6</span></td></tr>
+      </table>
+      <p>Under <strong>Action</strong>: Type = <span class="val">Bookmark</span> → Bookmark = <span class="val">Filters Shown</span></p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">14.6 — Add a Close button inside the panel</div>
+      <p>Insert → Buttons → Blank. Position it top-right of the filter panel.</p>
+      <p>Text: <span class="val">✕</span> · Action → Bookmark → <span class="val">Filters Hidden</span></p>
+      <p><strong>Add this button to the FilterPanel group</strong> so it hides/shows with the panel.</p>
+      <div class="warn"><strong>Important:</strong> In the Bookmark settings, make sure "Selected visuals only" is OFF so the bookmark affects the whole group.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section-divider">
+  <div class="section-divider-line"></div>
+  <div class="section-divider-text">FINAL POLISH</div>
+  <div class="section-divider-line"></div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════ -->
+<!-- STEP 15 -->
+<!-- ════════════════════════════════════════════════════════════ -->
+<div class="step" id="s15">
+  <div class="step-header">
+    <div class="step-badge green">15</div>
+    <div>
+      <div class="step-title">Final Polish &amp; Save as Template</div>
+      <div class="step-desc">Align everything, disable filter pane, and export the .pbit.</div>
+    </div>
+  </div>
+  <div class="substeps">
+
+    <div class="substep">
+      <div class="substep-num">15.1 — Align &amp; Distribute</div>
+      <p>Select the 4 KPI cards → <strong>Format → Align → Distribute Horizontally</strong>.<br>
+      Select the 3 charts → same. Makes everything pixel-perfect.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">15.2 — Hide the Filter Pane</div>
+      <div class="path">
+        <span class="crumb">File</span><span class="arrow">›</span>
+        <span class="crumb">Options</span><span class="arrow">›</span>
+        <span class="crumb">Report Settings</span>
+      </div>
+      <p>Uncheck <strong>"Filter pane"</strong> and <strong>"Page navigation"</strong> so the report looks clean when published.</p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">15.3 — Save as Template (.pbit)</div>
+      <div class="path">
+        <span class="crumb">File</span><span class="arrow">›</span>
+        <span class="crumb">Export</span><span class="arrow">›</span>
+        <span class="crumb">Power BI template</span>
+      </div>
+      <p>Give it a description like <span class="val">Employee Performance Dashboard – Dark Theme</span>.<br>
+      Save as <span class="val">EmployeePerformanceDashboard.pbit</span></p>
+    </div>
+
+    <div class="substep">
+      <div class="substep-num">15.4 — Final layout check</div>
+      <div class="diagram">
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ <span class="hl">[ LOGO ]</span>    <strong>Employee Performance Dashboard</strong>    <span class="am">Report Period</span>  <span class="hl">⊟ Filters</span> │
+│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━│
+│ <span class="hl">┌──────────────┐</span>  <span class="g">┌──────────────┐</span>  <span class="am">┌──────────────┐</span>  <span class="cy">┌──────────────┐</span>│
+│ <span class="hl">│  1,284       │</span>  <span class="g">│  78.4%       │</span>  <span class="am">│  82.1        │</span>  <span class="cy">│  71.2%       │</span>│
+│ <span class="hl">│  Total Forms │</span>  <span class="g">│  Pass Rate   │</span>  <span class="am">│  Avg Score   │</span>  <span class="cy">│  Target Met  │</span>│
+│ <span class="hl">└──────────────┘</span>  <span class="g">└──────────────┘</span>  <span class="am">└──────────────┘</span>  <span class="cy">└──────────────┘</span>│
+│ <span class="g">┌────────────┐</span>  <span class="cy">┌────────────────────────────────┐</span>  <span class="hl">┌──────────┐</span>     │
+│ <span class="g">│  Donut     │</span>  <span class="cy">│  Line Chart (score trend)      │</span>  <span class="hl">│ Stacked  │</span>     │
+│ <span class="g">│  Pass/Fail │</span>  <span class="cy">│  ──── target line ─────────   │</span>  <span class="hl">│ Bar by   │</span>     │
+│ <span class="g">└────────────┘</span>  <span class="cy">└────────────────────────────────┘</span>  <span class="hl">│ Plant    │</span>     │
+│                                                         <span class="hl">└──────────┘</span>     │
+│ ┌───────────────────────────────────────────────────────────────────────┐  │
+│ │  <span class="hl">Employee Performance Detail</span>                         <span class="hl">🔍 Search</span>    │  │
+│ │  Name  │ Job  │ Plant │ Date │ Score ████ │ Result │ Status │ By    │  │
+│ └───────────────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────────┘
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+// Highlight active nav item on scroll
+const steps = document.querySelectorAll('.step');
+const navItems = document.querySelectorAll('.nav-item');
+const total = steps.length;
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navItems.forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === `#${id}`);
+      });
+    }
+  });
+}, { threshold: 0.4 });
+
+steps.forEach(s => observer.observe(s));
+
+// Progress bar
+const main = document.querySelector('.main');
+main.addEventListener('scroll', () => {
+  const pct = (main.scrollTop / (main.scrollHeight - main.clientHeight)) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+});
+</script>
+</body>
+</html>
