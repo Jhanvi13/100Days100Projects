@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>SME Job Assessment Dashboard – HR & VP View</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:     #0B1929;
+  --header: #0D2137;
+  --panel:  #112840;
+  --card:   #0F2133;
+  --accent: #38BDF8;
+  --green:  #34D399;
+  --red:    #F87171;
+  --amber:  #FBBF24;
+  --cyan:   #22D3EE;
+  --purple: #A78BFA;
+  --white:  #F8FAFC;
+  --muted:  #94A3B8;
+  --border: #1E3A5F;
+}
+body {
+  background:#060e18;
+  display:flex; flex-direction:column; align-items:center;
+  padding:20px; gap:20px;
+  font-family:'Segoe UI',system-ui,sans-serif;
+}
+.label {
+  color:var(--muted); font-size:11px; letter-spacing:2px;
+  font-weight:700; text-transform:uppercase;
+  align-self:flex-start; margin-left:4px;
+}
+
+/* ── Canvas ── */
+.canvas {
+  width:1280px; height:720px;
+  background:var(--bg);
+  position:relative; overflow:hidden;
+  border-radius:4px;
+  box-shadow:0 24px 80px rgba(0,0,0,.7);
+  flex-shrink:0;
+}
+
+/* ── Header ── */
+.header {
+  position:absolute; top:0; left:0; right:0; height:64px;
+  background:var(--header);
+  border-bottom:2px solid var(--accent);
+  display:flex; align-items:center; padding:0 16px; gap:14px;
+  z-index:10;
+}
+.logo {
+  width:44px; height:44px; border-radius:50%;
+  background:#1a3a5c; border:2px solid var(--accent);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; overflow:hidden;
+}
+.logo svg { width:28px; height:28px; }
+.header-titles { flex:1; }
+.header-title { color:var(--white); font-size:18px; font-weight:700; line-height:1.2; }
+.header-sub { color:var(--muted); font-size:10px; letter-spacing:1px; }
+.header-badges { display:flex; gap:8px; }
+.audience-badge {
+  padding:4px 12px; border-radius:12px; font-size:10px; font-weight:700;
+  letter-spacing:1px;
+}
+.badge-hr  { background:rgba(167,139,250,.2); color:var(--purple); border:1px solid rgba(167,139,250,.3); }
+.badge-vp  { background:rgba(56,189,248,.2);  color:var(--accent);  border:1px solid rgba(56,189,248,.3); }
+.header-date { color:var(--muted); font-size:10px; text-align:right; min-width:100px; }
+.header-date strong { color:var(--accent); display:block; font-size:11px; }
+
+/* ── Left Slicer Panel ── */
+.slicer-panel {
+  position:absolute; top:64px; left:0; width:200px; bottom:0;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  padding:10px 8px; display:flex; flex-direction:column; gap:6px;
+}
+.panel-label {
+  color:var(--accent); font-size:10px; font-weight:700;
+  letter-spacing:2px; text-align:center;
+  padding-bottom:8px; border-bottom:1px solid var(--border);
+}
+.slicer {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:6px; padding:6px 8px; flex:1;
+}
+.slicer-hdr {
+  color:var(--accent); font-size:10px; font-weight:700;
+  margin-bottom:4px; display:flex; align-items:center; gap:4px;
+}
+.slicer-hdr::before {
+  content:''; width:3px; height:9px;
+  background:var(--accent); border-radius:2px;
+}
+.slicer-item {
+  display:flex; align-items:center; gap:6px;
+  color:var(--white); font-size:10px; padding:2px 0;
+}
+.slicer-item input { accent-color:var(--accent); }
+.date-inp {
+  width:100%; background:var(--panel); border:1px solid var(--border);
+  border-radius:4px; color:var(--white); font-size:10px;
+  padding:3px 6px; margin-top:3px; outline:none;
+}
+
+/* ── Content ── */
+.content {
+  position:absolute;
+  top:72px; left:208px; right:8px; bottom:8px;
+  display:grid;
+  grid-template-rows:80px 196px 1fr;
+  gap:8px;
+}
+
+/* ── KPI Row ── */
+.kpi-row { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.kpi {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:8px; padding:10px 14px;
+  position:relative; overflow:hidden;
+  display:flex; flex-direction:column; justify-content:center;
+  transition:transform .15s;
+}
+.kpi::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+}
+.kpi.blue::before   { background:var(--accent); }
+.kpi.green::before  { background:var(--green); }
+.kpi.red::before    { background:var(--red); }
+.kpi.amber::before  { background:var(--amber); }
+.kpi.purple::before { background:var(--purple); }
+.kpi:hover { transform:translateY(-2px); }
+.kpi-val { font-size:24px; font-weight:300; line-height:1; }
+.kpi.blue   .kpi-val { color:var(--accent); }
+.kpi.green  .kpi-val { color:var(--green); }
+.kpi.red    .kpi-val { color:var(--red); }
+.kpi.amber  .kpi-val { color:var(--amber); }
+.kpi.purple .kpi-val { color:var(--purple); }
+.kpi-lbl { color:var(--muted); font-size:10px; margin-top:4px; }
+.kpi-chg { font-size:10px; font-weight:600; margin-top:3px; }
+.up   { color:var(--green); }
+.down { color:var(--red); }
+
+/* ── Chart Row ── */
+.chart-row { display:grid; grid-template-columns:22fr 28fr 25fr 25fr; gap:8px; }
+.chart-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.chart-title {
+  color:var(--white); font-size:11px; font-weight:700;
+  margin-bottom:6px; display:flex; align-items:center; gap:5px;
+}
+.dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.chart-wrap { flex:1; position:relative; min-height:0; }
+
+/* ── Bottom Row ── */
+.bottom-row { display:grid; grid-template-columns:38fr 62fr; gap:8px; }
+
+/* ── Table ── */
+.table-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+.table-top {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:6px;
+}
+.table-title { color:var(--white); font-size:11px; font-weight:700; }
+.tbl-search {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:4px; color:var(--white); font-size:10px;
+  padding:3px 8px; outline:none; width:140px;
+}
+.tbl-search:focus { border-color:var(--accent); }
+.tbl-scroll { flex:1; overflow-y:auto; }
+.tbl-scroll::-webkit-scrollbar { width:3px; }
+.tbl-scroll::-webkit-scrollbar-thumb { background:var(--border); }
+.dtbl { width:100%; border-collapse:collapse; font-size:10px; }
+.dtbl th {
+  background:var(--header); color:var(--accent); font-weight:700;
+  padding:5px 8px; border-bottom:1px solid var(--accent);
+  text-align:left; white-space:nowrap; position:sticky; top:0;
+}
+.dtbl td {
+  padding:4px 8px; border-bottom:1px solid var(--border);
+  color:var(--white); white-space:nowrap;
+}
+.dtbl tr:nth-child(even) td { background:rgba(17,40,64,.4); }
+.dtbl tr:hover td { background:rgba(56,189,248,.07); }
+.bdg { padding:2px 7px; border-radius:9px; font-weight:700; font-size:9px; }
+.pass { background:rgba(52,211,153,.2);  color:var(--green); }
+.fail { background:rgba(248,113,113,.2); color:var(--red); }
+.appr { background:rgba(56,189,248,.15); color:var(--accent); }
+.pend { background:rgba(251,191,36,.15); color:var(--amber); }
+.bar-wrap { display:flex; align-items:center; gap:5px; }
+.bar-bg { flex:1; height:4px; background:var(--border); border-radius:2px; min-width:40px; }
+.bar-fill { height:100%; border-radius:2px; }
+
+/* ── Risk panel (VP view) ── */
+.risk-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:8px; padding:10px 12px;
+  display:flex; flex-direction:column; gap:6px;
+}
+.risk-title { color:var(--white); font-size:11px; font-weight:700; margin-bottom:2px; }
+.risk-item {
+  display:flex; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:6px;
+  background:var(--panel); border:1px solid var(--border);
+}
+.risk-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.risk-name { color:var(--white); font-size:11px; flex:1; }
+.risk-score { font-size:12px; font-weight:700; }
+.risk-pct { color:var(--muted); font-size:10px; }
+.risk-bar { width:80px; height:4px; background:var(--border); border-radius:2px; }
+.risk-bar-fill { height:100%; border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="label">HR &amp; VP VIEW — SME JOB ASSESSMENT DASHBOARD</div>
+
+<div class="canvas">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <svg viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="#38BDF8" stroke-width="1.5"/>
+        <path d="M8 20 Q14 8 20 20" stroke="#38BDF8" stroke-width="2" fill="none"/>
+        <circle cx="14" cy="10" r="3" fill="#38BDF8"/>
+      </svg>
+    </div>
+    <div class="header-titles">
+      <div class="header-title">FBD-TNS SME JOB ASSESSMENT</div>
+      <div class="header-sub">SUBJECT MATTER EXPERT · ON-THE-JOB ASSESSMENT</div>
+    </div>
+    <div class="header-badges">
+      <span class="audience-badge badge-hr">HR VIEW</span>
+      <span class="audience-badge badge-vp">VP VIEW</span>
+    </div>
+    <div class="header-date">
+      <strong>Report Period</strong>Jan – Jun 2026
+    </div>
+  </div>
+
+  <!-- SLICER PANEL -->
+  <div class="slicer-panel">
+    <div class="panel-label">FILTERS</div>
+
+    <div class="slicer">
+      <div class="slicer-hdr">Date Range</div>
+      <div class="date-label" style="color:#64748b;font-size:9px">FROM</div>
+      <input class="date-inp" type="date" value="2026-01-01">
+      <div class="date-label" style="color:#64748b;font-size:9px;margin-top:4px">TO</div>
+      <input class="date-inp" type="date" value="2026-06-27">
+    </div>
+
+    <div class="slicer">
+      <div class="slicer-hdr">Position</div>
+      <label class="slicer-item"><input type="checkbox" checked> All</label>
+      <label class="slicer-item"><input type="checkbox"> Packing</label>
+      <label class="slicer-item"><input type="checkbox"> Pinboning</label>
+      <label class="slicer-item"><input type="checkbox"> Trimming</label>
+      <label class="slicer-item"><input type="checkbox"> Filleting</label>
+    </div>
+
+    <div class="slicer">
+      <div class="slicer-hdr">Department</div>
+      <label class="slicer-item"><input type="checkbox" checked> All</label>
+      <label class="slicer-item"><input type="checkbox"> Production</label>
+      <label class="slicer-item"><input type="checkbox"> Quality</label>
+      <label class="slicer-item"><input type="checkbox"> Warehouse</label>
+    </div>
+
+    <div class="slicer">
+      <div class="slicer-hdr">Plant</div>
+      <label class="slicer-item"><input type="checkbox" checked> All</label>
+      <label class="slicer-item"><input type="checkbox"> Plant A</label>
+      <label class="slicer-item"><input type="checkbox"> Plant B</label>
+      <label class="slicer-item"><input type="checkbox"> Plant C</label>
+    </div>
+
+    <div class="slicer">
+      <div class="slicer-hdr">Pass / Fail</div>
+      <label class="slicer-item"><input type="checkbox" checked> All</label>
+      <label class="slicer-item"><input type="checkbox"> Pass</label>
+      <label class="slicer-item"><input type="checkbox"> Fail</label>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+      <div class="kpi blue">
+        <div class="kpi-val">202</div>
+        <div class="kpi-lbl">Total Assessments</div>
+        <div class="kpi-chg up">▲ 14% vs last period</div>
+      </div>
+      <div class="kpi green">
+        <div class="kpi-val">44.6%</div>
+        <div class="kpi-lbl">Pass Rate</div>
+        <div class="kpi-chg up">▲ 2.1 pts</div>
+      </div>
+      <div class="kpi red">
+        <div class="kpi-val">51</div>
+        <div class="kpi-lbl">Not Meeting Target</div>
+        <div class="kpi-chg down">▼ needs attention</div>
+      </div>
+      <div class="kpi amber">
+        <div class="kpi-val">76.3</div>
+        <div class="kpi-lbl">Avg Total Score</div>
+        <div class="kpi-chg up">▲ 1.8 pts</div>
+      </div>
+      <div class="kpi purple">
+        <div class="kpi-val">89%</div>
+        <div class="kpi-lbl">PPE Compliance</div>
+        <div class="kpi-chg down">▼ 3% vs target</div>
+      </div>
+    </div>
+
+    <!-- CHART ROW -->
+    <div class="chart-row">
+
+      <!-- Donut -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span class="dot" style="background:var(--green)"></span>
+          Pass vs Fail
+        </div>
+        <div class="chart-wrap"><canvas id="donut"></canvas></div>
+      </div>
+
+      <!-- Bar by position -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span class="dot" style="background:var(--accent)"></span>
+          Avg Score by Position
+        </div>
+        <div class="chart-wrap"><canvas id="posBar"></canvas></div>
+      </div>
+
+      <!-- Line trend -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span class="dot" style="background:var(--cyan)"></span>
+          Assessment Trend
+        </div>
+        <div class="chart-wrap"><canvas id="trend"></canvas></div>
+      </div>
+
+      <!-- Speed bar -->
+      <div class="chart-card">
+        <div class="chart-title">
+          <span class="dot" style="background:var(--amber)"></span>
+          Speed by Position
+        </div>
+        <div class="chart-wrap"><canvas id="speed"></canvas></div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM ROW -->
+    <div class="bottom-row">
+
+      <!-- VP Risk Panel -->
+      <div class="risk-card">
+        <div class="risk-title">⚠ VP Risk Summary — Positions Needing Attention</div>
+        <div class="risk-item">
+          <div class="risk-dot" style="background:var(--red)"></div>
+          <div class="risk-name">Pinboning</div>
+          <div class="risk-bar"><div class="risk-bar-fill" style="width:78%;background:var(--red)"></div></div>
+          <div class="risk-score" style="color:var(--red)">38%</div>
+          <div class="risk-pct">pass rate</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-dot" style="background:var(--amber)"></div>
+          <div class="risk-name">Trimming</div>
+          <div class="risk-bar"><div class="risk-bar-fill" style="width:55%;background:var(--amber)"></div></div>
+          <div class="risk-score" style="color:var(--amber)">45%</div>
+          <div class="risk-pct">pass rate</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-dot" style="background:var(--amber)"></div>
+          <div class="risk-name">Filleting</div>
+          <div class="risk-bar"><div class="risk-bar-fill" style="width:48%;background:var(--amber)"></div></div>
+          <div class="risk-score" style="color:var(--amber)">52%</div>
+          <div class="risk-pct">pass rate</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-dot" style="background:var(--green)"></div>
+          <div class="risk-name">Packing</div>
+          <div class="risk-bar"><div class="risk-bar-fill" style="width:28%;background:var(--green)"></div></div>
+          <div class="risk-score" style="color:var(--green)">72%</div>
+          <div class="risk-pct">pass rate</div>
+        </div>
+        <div class="risk-item">
+          <div class="risk-dot" style="background:var(--green)"></div>
+          <div class="risk-name">Quality Check</div>
+          <div class="risk-bar"><div class="risk-bar-fill" style="width:18%;background:var(--green)"></div></div>
+          <div class="risk-score" style="color:var(--green)">82%</div>
+          <div class="risk-pct">pass rate</div>
+        </div>
+      </div>
+
+      <!-- HR Detail Table -->
+      <div class="table-card">
+        <div class="table-top">
+          <div class="table-title">HR Detail — Employee Assessment Records</div>
+          <input class="tbl-search" type="text" placeholder="🔍 Search employee…">
+        </div>
+        <div class="tbl-scroll">
+          <table class="dtbl">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Position</th>
+                <th>Dept</th>
+                <th>Score</th>
+                <th>Speed</th>
+                <th>PPE</th>
+                <th>Result</th>
+                <th>Approval</th>
+                <th>Submitted By</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+
+</div><!-- /canvas -->
+
+<script>
+// ── Data ─────────────────────────────────────────────────────────────────────
+const employees = [
+  ["Sarah Mitchell",  "Pinboning",   "Production", 62, 4.2, "Yes", "Fail", "Approved"],
+  ["Marcus Webb",     "Packing",     "Warehouse",  81, 5.1, "Yes", "Pass", "Approved"],
+  ["Priya Nair",      "Trimming",    "Production", 55, 3.8, "No",  "Fail", "Pending"],
+  ["James Okafor",    "Filleting",   "Production", 88, 5.6, "Yes", "Pass", "Approved"],
+  ["Linda Hofmann",   "Pinboning",   "Production", 48, 3.2, "Yes", "Fail", "Rejected"],
+  ["Chen Wei",        "Packing",     "Warehouse",  92, 6.1, "Yes", "Pass", "Approved"],
+  ["Aisha Oduya",     "Trimming",    "Quality",    74, 4.5, "Yes", "Pass", "Pending"],
+  ["Robert Dupont",   "Filleting",   "Production", 83, 5.2, "Yes", "Pass", "Approved"],
+  ["Maya Patel",      "Pinboning",   "Production", 41, 2.9, "No",  "Fail", "Pending"],
+  ["Kevin Larsson",   "Packing",     "Warehouse",  90, 5.8, "Yes", "Pass", "Approved"],
+  ["Amara Diallo",    "Quality Check","Quality",   85, 5.0, "Yes", "Pass", "Approved"],
+  ["Tom Eriksen",     "Trimming",    "Production", 52, 3.5, "No",  "Fail", "Rejected"],
+];
+
+const tbody = document.getElementById("tbody");
+employees.forEach(([name,pos,dept,score,speed,ppe,result,appr]) => {
+  const col = score>=80?"var(--green)":score>=60?"var(--amber)":"var(--red)";
+  const rc  = result==="Pass"?"pass":"fail";
+  const ac  = appr==="Approved"?"appr":"pend";
+  tbody.innerHTML += `<tr>
+    <td><strong>${name}</strong></td>
+    <td style="color:var(--muted)">${pos}</td>
+    <td style="color:var(--muted)">${dept}</td>
+    <td>
+      <div class="bar-wrap">
+        <span style="color:${col};font-weight:700;min-width:24px">${score}</span>
+        <div class="bar-bg"><div class="bar-fill" style="width:${score}%;background:${col}"></div></div>
+      </div>
+    </td>
+    <td style="color:var(--amber)">${speed}</td>
+    <td style="color:${ppe==='Yes'?'var(--green)':'var(--red)'}">${ppe}</td>
+    <td><span class="bdg ${rc}">${result}</span></td>
+    <td><span class="bdg ${ac}">${appr}</span></td>
+    <td style="color:var(--muted)">Supervisor</td>
+  </tr>`;
+});
+
+// ── Chart defaults ────────────────────────────────────────────────────────────
+Chart.defaults.color="#94A3B8";
+Chart.defaults.font.family="'Segoe UI',sans-serif";
+Chart.defaults.font.size=10;
+const grid="rgba(30,58,95,.55)";
+const tip={backgroundColor:"#0D2137",borderColor:"#1E3A5F",borderWidth:1,
+           titleColor:"#F8FAFC",bodyColor:"#94A3B8",padding:8};
+
+// Donut
+new Chart(document.getElementById("donut"),{
+  type:"doughnut",
+  data:{
+    labels:["Pass","Fail"],
+    datasets:[{data:[90,112],backgroundColor:["#34D399","#F87171"],
+               borderColor:"#0F2133",borderWidth:3,hoverOffset:6}]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,cutout:"65%",
+    plugins:{legend:{position:"bottom",labels:{color:"#94A3B8",padding:8,boxWidth:10}},tooltip:tip}
+  },
+  plugins:[{id:"c",afterDraw(c){
+    const {ctx,chartArea:{left,right,top,bottom}}=c;
+    const cx=(left+right)/2,cy=(top+bottom)/2;
+    ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";
+    ctx.font="bold 20px 'Segoe UI'";ctx.fillStyle="#F8FAFC";ctx.fillText("44.6%",cx,cy-7);
+    ctx.font="9px 'Segoe UI'";ctx.fillStyle="#94A3B8";ctx.fillText("Pass Rate",cx,cy+10);
+    ctx.restore();
+  }}]
+});
+
+// Position bar
+new Chart(document.getElementById("posBar"),{
+  type:"bar",
+  data:{
+    labels:["Packing","Filleting","Quality","Trimming","Pinboning"],
+    datasets:[{
+      data:[84,80,85,63,50],
+      backgroundColor:["#34D399","#34D399","#34D399","#FBBF24","#F87171"],
+      borderRadius:4,borderSkipped:false
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:"y",
+    plugins:{legend:{display:false},tooltip:tip},
+    scales:{
+      x:{grid:{color:grid},ticks:{color:"#94A3B8"},min:0,max:100},
+      y:{grid:{display:false},ticks:{color:"#94A3B8"}}
+    }
+  }
+});
+
+// Trend line
+new Chart(document.getElementById("trend"),{
+  type:"line",
+  data:{
+    labels:["Jan","Feb","Mar","Apr","May","Jun"],
+    datasets:[
+      {label:"Pass %",data:[38,40,42,44,43,44.6],
+       borderColor:"#22D3EE",backgroundColor:"rgba(34,211,238,.1)",
+       pointBackgroundColor:"#22D3EE",pointRadius:3,tension:.35,fill:true,borderWidth:2},
+      {label:"Target",data:[70,70,70,70,70,70],
+       borderColor:"rgba(251,191,36,.4)",borderDash:[5,4],
+       pointRadius:0,fill:false,borderWidth:1.5}
+    ]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:"bottom",labels:{color:"#94A3B8",padding:8,boxWidth:10}},tooltip:tip},
+    scales:{
+      x:{grid:{display:false},ticks:{color:"#94A3B8"}},
+      y:{grid:{color:grid},ticks:{color:"#94A3B8"},min:0,max:100}
+    }
+  }
+});
+
+// Speed bar
+new Chart(document.getElementById("speed"),{
+  type:"bar",
+  data:{
+    labels:["Packing","Filleting","Trimming","Pinboning"],
+    datasets:[{
+      label:"Avg Speed",data:[5.8,5.3,4.4,3.6],
+      backgroundColor:["#FBBF24","#FBBF24","#F8A521","#F87171"],
+      borderRadius:4
+    }]
+  },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:tip},
+    scales:{
+      x:{grid:{display:false},ticks:{color:"#94A3B8"}},
+      y:{grid:{color:grid},ticks:{color:"#94A3B8"}}
+    }
+  }
+});
+</script>
+</body>
+</html>
