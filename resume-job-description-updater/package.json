@@ -1,0 +1,21 @@
+{
+  "name": "resume-job-description-updater",
+  "version": "1.0.0",
+  "description": "Upload a resume in any format, paste a job description, and get back a tailored resume.",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0",
+    "cors": "^2.8.5",
+    "docx": "^9.5.1",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "mammoth": "^1.9.1",
+    "multer": "^2.2.0",
+    "pdf-parse": "^1.1.1"
+  }
+}
